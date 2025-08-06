@@ -52,7 +52,7 @@ public class AdminController {
 
     /**
      * Endpoint que retorna um ranking dos postos com mais agendamentos.
-     * Retorna uma lista de objetos com nome do posto e total de agendamentos.
+     * Retorna uma lista de objetos com nome do posto e total de aendamentos.
      */
     @GetMapping("/ranking-postos")
     public ResponseEntity<?> getRankingPostos() {
