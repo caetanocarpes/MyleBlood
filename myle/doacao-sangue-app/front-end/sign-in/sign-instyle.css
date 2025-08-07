@@ -1,62 +1,112 @@
 body {
     margin: 0;
     padding: 0;
-    background-image: url(../sign-in/img/background-signin.png);
+    background-image: url(../sign-in/img/background-img.png);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
+    display: flex;
+    justify-content: center;  /* Centraliza horizontalmente */
+    align-items: center; 
     height: 100vh;
     overflow: hidden;
 }
 
-.logo {
-  position: absolute;
-  top: 60px;
-  left: 300px;
-  width: 200px; 
+.blood1,
+.blood2 {
+  position: fixed;        /* necessário para o z-index funcionar */
+  width: 400px;           /* ajuste conforme desejar */
   height: auto;
-  z-index: 10; 
+  z-index: -1;            /* coloca atrás de tudo */
+  pointer-events: none;   /* impede que atrapalhe cliques */
+  user-select: none;      /* impede seleção */
+  z-index: 10;   
+}
+
+.blood1 {
+  top: 430px;
+  left: -100px;
+}
+
+.blood2 {
+  transform: scaleX(-1);
+  left: 1150px;
+  bottom: 490px;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  border-radius: 20px;
+  padding: 20px 60px;
+  max-width: 850px;
+  margin: 40px auto;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+
+.logo-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.logo {
+  width: 200px;
+  height: auto;
+  margin-top: 10px;
+  margin-bottom: 20px;
   transition: transform 0.3s ease;
-  transition: transform 0.3s ease-out;
-  cursor: default;
 }
 
 .logo:hover {
   transform: scale(1.1);
-  cursor: default;
+  cursor: pointer;
+}
+
+.form-content {
+  display: flex;
+  align-items: center;   /* centraliza o conteúdo do formulário */
+  text-align: center;
+  width: 100%;
 }
 
 .cadastro {
-  position: absolute;
+  white-space: nowrap;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  margin-left: 0px;
+  text-align: left; 
   font-family: "Open Sans", sans-serif;
-  font-optical-sizing: auto;
   font-weight: 700;
-  font-style: normal;
-  font-variation-settings: "wdth" 85;
-  font-size: 24px;
+  font-size: 22px;
   color: rgba(255, 49, 49);
-  top: 156px;
-  left: 345px;
   cursor: default;
+  width: 100%;
 }
 
-.signinbox {
-  position: absolute;
-  top: 220px;
-  left: 340px;
-  width: 780px;
+.signinbox { 
+  margin-left: 0px;
+  width: 820px;      /* ocupa toda largura do container */
+  max-width: 100%;
   padding: 9px;
   border-radius: 40px;
   font-family: 'Open Sans', sans-serif;
+  box-sizing: border-box;
+  align-items: center;
 }
 
 .inputbox {
   background-color: #ffffff;
   padding: 1px;
   border-radius: 40px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   flex: 1;
+  width: 100%;
 }
 
 .inputbox input {
@@ -85,26 +135,24 @@ input:-webkit-autofill {
 
 
 .signinbox2 {
-  position: absolute;
-  top: 129px;
-  left: 0px;
-  width: 780px;
+  width: 100%;        /* ocupa toda largura do pai */
+  max-width: 800px;   /* limita o tamanho máximo, se quiser */
   padding: 9px;
   border-radius: 40px;
   font-family: 'Open Sans', sans-serif;
   display: flex;
   gap: 20px;
   flex-wrap: wrap;
+  box-sizing: border-box; /* importante para somar padding à largura */
 }
 
 .espaco {
-    width: 100px;
-    height: 58px;
+  width: 100px;
 }
 
 .submit-btn {
-  margin-top: 0px;
-  width: 100%;
+  margin-top: 20px;
+  width: 50%;
   padding: 12px;
   background-color:  rgba(255, 49, 49); /* azul moderno, pode trocar */
   color: white;

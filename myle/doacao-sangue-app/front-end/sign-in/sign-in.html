@@ -21,49 +21,65 @@
 
 </head>
 <body>
-    <!-- Logo -->
-    <img src="../sign-in/img/logo-myle.png" alt="logo" class="logo">
 
-    <!-- Login -->
-     <p class="cadastro"> Criar uma conta </p>
+    
 
-    <div class="signinbox">
-        <form>
+<div class="form-container">
+  
+    <img src="../sign-in/img/blood.png" alt="blood1" class="blood1">
+    <img src="../sign-in/img/blood.png" alt="blood2" class="blood2">
 
-            <div class="inputbox">
-                <input type="text" id="name" name="name" placeholder="Nome">
-            </div>
-
-            <div class="inputbox">
-                <input type="email" id="email" name="email" placeholder="Email">
-            </div>
-
-            <div class="signinbox2">
-                <div class="inputbox">
-                    <input type="text" id="cpf" name="cpf" placeholder="CPF" maxlength="14" oninput="mascaraCPF(this)">
-                </div>
-
-                <div class="inputbox">
-                    <input type="text" id="dataNascimento" name="dataNascimento" placeholder="Data de Nascimento" maxlength="10" oninput="mascaraData(this)">
-                </div>
-            </div>
-            <div class="espaco"></div>
-
-            <div class="inputbox">
-                <input type="password" id="password" name="password" placeholder="Senha">
-            </div>
-
-            <div class="inputbox">
-                <input type="password" id="cpassword" name="cpassword" placeholder="Confirmar Senha">
-            </div>
-
-        <button type="submit" class="submit-btn"> Criar a conta </button>
-
-
-        </form>
+    <div class="logo-wrapper">
+      <a href="../home/home.html">
+      <img src="../sign-in/img/logo-myle.png" class="logo" alt="logo" />
+      </a>
     </div>
 
-<!-- JS Local -->
-  <script src="sign-inscript.js"></script>
+    <p class="cadastro"> Criar uma conta </p>
+
+  <!-- Conteúdo centralizado -->
+  <div class="form-content">
+
+    <div class="signinbox">
+      <form>
+        <div class="inputbox">
+          <input type="text" id="name" name="name" placeholder="Nome">
+        </div>
+
+        <div class="inputbox">
+          <input type="email" id="email" name="email" placeholder="Email">
+        </div>
+
+        <div class="signinbox2">
+          <div class="inputbox">
+            <input type="text" id="cpf" name="cpf" placeholder="CPF" maxlength="14" oninput="mascaraCPF(this)">
+          </div>
+
+          <div class="inputbox">
+            <input type="text" id="dataNascimento" name="dataNascimento" placeholder="Data de Nascimento" maxlength="10" oninput="mascaraData(this)">
+          </div>
+        </div>
+
+        <div class="espaco"></div>
+
+        <div class="inputbox">
+          <input type="password" id="password" name="password" placeholder="Senha">
+        </div>
+
+        <div class="inputbox">
+          <input type="password" id="cpassword" name="cpassword" placeholder="Confirmar Senha">
+        </div>
+
+        <button type="submit" class="submit-btn">Criar a conta</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+    <!-- JS Local -->
+    <script src="sign-inscript.js"></script>
+
 </body>
 </html>
