@@ -6,7 +6,10 @@ toggle.addEventListener('change', () => {
     password.type = toggle.checked ? 'text' : 'password';
   });
 
-document.getElementById("botaoRedirecionar").addEventListener("click", function() {
-    window.location.href = "../sign-in/sign-in.html";
-  });
+document.addEventListener('DOMContentLoaded', function() {
+    const botao = document.getElementById('botaoRedirecionar');
+    botao.addEventListener('click', function() {
+        window.location.href = '../sign-in/sign-in.html'; // link desejado
+    });
+});
 
