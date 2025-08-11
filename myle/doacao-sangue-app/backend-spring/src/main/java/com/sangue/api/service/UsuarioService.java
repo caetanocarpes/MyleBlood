@@ -74,7 +74,7 @@ public class UsuarioService {
         existente.setEmail(novosDados.getEmail());
         existente.setCpf(novosDados.getCpf());
 
-        if (!novosDados.getSenha().isBlank()) {
+        if (novosDados.getSenha() != null && !novosDados.getSenha().isBlank()) {
             existente.setSenha(encoder.encode(novosDados.getSenha()));
         }
 

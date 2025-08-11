@@ -8,6 +8,7 @@ import com.sangue.api.security.JwtUtil;
 import com.sangue.api.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Controller de autenticação: registro, login e /me
+ */
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin(origins = "*")
@@ -29,36 +33,36 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    // Encoder local apenas para comparar senhas no login
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    // Endpoint de cadastro - cria um novo usuário com validações
+    // Registro de usuário
     @PostMapping("/register")
     public ResponseEntity<?> registrar(@Valid @RequestBody UsuarioDTO dto) {
         try {
-            Usuario usuario = usuarioService.cadastrar(dto);
-            return ResponseEntity.ok().body("Usuário cadastrado com sucesso!");
+            usuarioService.cadastrar(dto);
+            return ResponseEntity.ok("Usuário cadastrado com sucesso!");
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            // Dados inválidos / duplicados etc.
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
-    // Endpoint de login - autentica e retorna token + dados do usuário
+    // Login: valida credenciais e retorna JWT + dados básicos
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
         // Busca usuário pelo email
         Usuario usuario = usuarioRepository.findByEmail(loginDTO.getEmail())
-                .orElseThrow(() -> new RuntimeException("Email ou senha inválidos"));
+                .orElse(null);
 
-        // Verifica se a senha está correta
-        boolean senhaOk = encoder.matches(loginDTO.getSenha(), usuario.getSenha());
-        if (!senhaOk) {
-            return ResponseEntity.badRequest().body("Email ou senha inválidos");
+        // Se não existir OU senha não confere -> 401 Unauthorized
+        if (usuario == null || !encoder.matches(loginDTO.getSenha(), usuario.getSenha())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou senha inválidos");
         }
 
-        // Gera o token JWT
+        // Gera o token com o email como subject
         String token = jwtUtil.gerarToken(usuario.getEmail());
 
-        // Monta a resposta com token e informações do usuário
         Map<String, Object> resposta = new HashMap<>();
         resposta.put("token", token);
         resposta.put("id", usuario.getId());
@@ -68,21 +72,18 @@ public class AuthController {
         return ResponseEntity.ok(resposta);
     }
 
-    // Endpoint que retorna os dados do usuário logado com base no token JWT
+    // Retorna dados do usuário autenticado com base no token
     @GetMapping("/me")
     public ResponseEntity<?> perfil(@RequestHeader("Authorization") String authHeader) {
         try {
-            // Extrai o email do token JWT
             String token = authHeader.replace("Bearer ", "");
             String email = jwtUtil.extrairEmail(token);
 
-            // Busca o usuário pelo email
             Usuario usuario = usuarioService.buscarPorEmail(email);
             if (usuario == null) {
-                return ResponseEntity.status(404).body("Usuário não encontrado");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado");
             }
 
-            // Retorna os dados do usuário (sem a senha)
             Map<String, Object> dados = new HashMap<>();
             dados.put("id", usuario.getId());
             dados.put("nome", usuario.getNome());
@@ -92,7 +93,7 @@ public class AuthController {
 
             return ResponseEntity.ok(dados);
         } catch (Exception e) {
-            return ResponseEntity.status(401).body("Token inválido");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido");
         }
     }
 }

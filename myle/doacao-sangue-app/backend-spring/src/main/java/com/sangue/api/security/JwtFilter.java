@@ -15,7 +15,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-// Filtro executado uma vez por requisição para autenticar com base no token JWT
+/**
+ * Filtro JWT executado uma vez por requisição.
+ * Agora ele IGNORA rotas públicas (ex.: /auth/**), para não barrar o login.
+ */
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
@@ -31,36 +34,42 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Recupera o token do cabeçalho Authorization
+        String path = request.getServletPath();
+
+        // IMPORTANTE: não interceptar rotas públicas (login, registro, etc.)
+        if (path.startsWith("/auth/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Lê o Authorization: Bearer <token>
         String authHeader = request.getHeader("Authorization");
 
-        // Verifica se o token está presente e começa com "Bearer "
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.replace("Bearer ", "");
+            String token = authHeader.substring(7);
 
             try {
-                // Extrai o email de dentro do token
+                // Extrai e valida informações do token
                 String email = jwtUtil.extrairEmail(token);
 
-                // Busca o usuário correspondente no banco
+                // Carrega o usuário para colocar no contexto de segurança
                 Usuario usuario = usuarioRepository.findByEmail(email)
-                        .orElseThrow(() -> new RuntimeException("Usuário não encontrado com esse token"));
+                        .orElseThrow(() -> new RuntimeException("Usuário não encontrado para o token"));
 
-                // Cria o objeto de autenticação e coloca no contexto do Spring
-                UsernamePasswordAuthenticationToken authToken =
+                UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(usuario, null, null);
 
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                // Marca a requisição como autenticada
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 
             } catch (Exception e) {
-                // Se der erro ao validar, ignora o token e segue sem autenticação
+                // Se token inválido/expirado, segue sem autenticar (as rotas privadas negarão o acesso)
                 System.out.println("Erro no filtro JWT: " + e.getMessage());
             }
         }
 
-        // Continua o fluxo da requisição
         filterChain.doFilter(request, response);
     }
 }
