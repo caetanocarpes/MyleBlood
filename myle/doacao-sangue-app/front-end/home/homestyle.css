@@ -184,6 +184,11 @@ body {
 
 }
 
+a {
+    text-decoration: none;
+    color: inherit; /* Mantém a cor do texto atual, opcional */
+}
+
 
 
 

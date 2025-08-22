@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Myle Blood | Agendamento</title>
+    <link rel="icon" href="img/mb-ico.png" type="image/png"/>
+    <link rel="stylesheet" href="agendamentoStyle.css"/>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap');
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a href="../home/home.html">
+            <img src="img/logoMyle.png" alt="Logo" class="logo">
+        </a>
+        <img src="img/profile.png" alt="Avatar" class="avatar">
+        <h3>Rafael Reis Stumm</h3>
+        <div class="info"><img src="img/telephone.png" alt="Telefone"> (55) 99664-0568 </div>
+        <div class="info"><img src="img/blood.png" alt="Sangue"> A+ </div>
+        <div class="info"><img src="img/weight.png" alt="Peso"> 78kg </div>
+        <div class="info"><img src="img/altura.png" alt="Altura"> 1,80m </div>
+        <button class="logout">Logout</button>
+    </div>
+
+    <!-- Calendário -->
+    <div class="main">
+        <h2>Datas e Horários</h2>
+        <div class="calendar">
+            <div class="header">
+                <div id="month-year-container">
+                    <button id="prev">&#8249;</button>
+                    <span id="month-year"></span>
+                    <button id="next">&#8250;</button>
+                </div>
+            </div>
+            <div class="weekdays">
+                <div>Dom</div>
+                <div>Seg</div>
+                <div>Ter</div>
+                <div>Qua</div>
+                <div>Qui</div>
+                <div>Sex</div>
+                <div>Sáb</div>
+            </div>
+            <div class="days" id="days"></div>
+        </div>
+    </div>
+
+    <!-- Histórico -->
+    <div class="history">
+        <h2>Histórico</h2>
+        <p>Faça sua primeira doação!</p>
+
+        <!-- Lista de agendamentos -->
+        <div id="agendamentos" class="agendamentos">
+            <!-- Agendamentos serão adicionados aqui via JS -->
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <span id="close-modal" class="close">&times;</span>
+        <p id="selected-date"></p>
+        <label for="hora">Horário:</label>
+        <input type="time" id="hora" required>
+        <label for="local">Local:</label>
+        <input type="text" id="local" placeholder="Digite o local" required>
+        <button id="confirmar-agendamento">Confirmar</button>
+    </div>
+</div>
+
+<script src="agendamentoScript.js"></script>
+</body>
+</html>
