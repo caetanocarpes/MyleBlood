@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.*; // importa todas as anotações (RestController, GetMapping etc.)
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +43,6 @@ public class AuthController {
             usuarioService.cadastrar(dto);
             return ResponseEntity.ok("Usuário cadastrado com sucesso!");
         } catch (RuntimeException e) {
-            // Dados inválidos / duplicados etc.
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
@@ -51,16 +50,13 @@ public class AuthController {
     // Login: valida credenciais e retorna JWT + dados básicos
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
-        // Busca usuário pelo email
         Usuario usuario = usuarioRepository.findByEmail(loginDTO.getEmail())
                 .orElse(null);
 
-        // Se não existir OU senha não confere -> 401 Unauthorized
         if (usuario == null || !encoder.matches(loginDTO.getSenha(), usuario.getSenha())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou senha inválidos");
         }
 
-        // Gera o token com o email como subject
         String token = jwtUtil.gerarToken(usuario.getEmail());
 
         Map<String, Object> resposta = new HashMap<>();
@@ -68,6 +64,9 @@ public class AuthController {
         resposta.put("id", usuario.getId());
         resposta.put("nome", usuario.getNome());
         resposta.put("email", usuario.getEmail());
+        resposta.put("tipoSanguineo", usuario.getTipoSanguineo());
+        resposta.put("pesoKg", usuario.getPesoKg());
+        resposta.put("alturaCm", usuario.getAlturaCm());
 
         return ResponseEntity.ok(resposta);
     }
@@ -90,6 +89,9 @@ public class AuthController {
             dados.put("email", usuario.getEmail());
             dados.put("cpf", usuario.getCpf());
             dados.put("dataNascimento", usuario.getDataNascimento());
+            dados.put("tipoSanguineo", usuario.getTipoSanguineo());
+            dados.put("pesoKg", usuario.getPesoKg());
+            dados.put("alturaCm", usuario.getAlturaCm());
 
             return ResponseEntity.ok(dados);
         } catch (Exception e) {

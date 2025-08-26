@@ -21,33 +21,32 @@ public class UsuarioService {
 
     // Cadastra um novo usuário após validações
     public Usuario cadastrar(UsuarioDTO dto) {
-        // Verifica duplicação por email ou CPF
         if (usuarioRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("Email já cadastrado");
         }
-
         if (usuarioRepository.existsByCpf(dto.getCpf())) {
             throw new RuntimeException("CPF já cadastrado");
         }
 
-        // Validação de idade mínima e máxima (16 a 69 anos)
         LocalDate hoje = LocalDate.now();
         LocalDate nascimento = LocalDate.parse(dto.getDataNascimento());
         int idade = Period.between(nascimento, hoje).getYears();
-
         if (idade < 16 || idade > 69) {
             throw new RuntimeException("Para doar sangue é necessário ter entre 16 e 69 anos");
         }
 
-        // Cria novo objeto Usuario e popula com dados do DTO
         Usuario usuario = new Usuario();
         usuario.setNome(dto.getNome());
         usuario.setEmail(dto.getEmail());
         usuario.setCpf(dto.getCpf());
         usuario.setDataNascimento(nascimento);
-        usuario.setSenha(encoder.encode(dto.getSenha())); // Criptografa a senha
+        usuario.setSenha(encoder.encode(dto.getSenha()));
+        // Novos campos
+        usuario.setTipoSanguineo(dto.getTipoSanguineo());
+        usuario.setPesoKg(dto.getPesoKg());
+        usuario.setAlturaCm(dto.getAlturaCm());
 
-        return usuarioRepository.save(usuario); // Salva no banco
+        return usuarioRepository.save(usuario);
     }
 
     // Retorna todos os usuários cadastrados
@@ -65,14 +64,18 @@ public class UsuarioService {
         return usuarioRepository.findByEmail(email).orElse(null);
     }
 
-    // Atualiza os dados de um usuário existente
+    // Atualiza os dados de um usuário existente (inclui novos campos)
     public Usuario atualizarUsuario(Long id, Usuario novosDados) {
         Usuario existente = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        existente.setNome(novosDados.getNome());
-        existente.setEmail(novosDados.getEmail());
-        existente.setCpf(novosDados.getCpf());
+        if (novosDados.getNome() != null) existente.setNome(novosDados.getNome());
+        if (novosDados.getEmail() != null) existente.setEmail(novosDados.getEmail());
+        if (novosDados.getCpf() != null) existente.setCpf(novosDados.getCpf());
+        if (novosDados.getDataNascimento() != null) existente.setDataNascimento(novosDados.getDataNascimento());
+        if (novosDados.getTipoSanguineo() != null) existente.setTipoSanguineo(novosDados.getTipoSanguineo());
+        if (novosDados.getPesoKg() != null) existente.setPesoKg(novosDados.getPesoKg());
+        if (novosDados.getAlturaCm() != null) existente.setAlturaCm(novosDados.getAlturaCm());
 
         if (novosDados.getSenha() != null && !novosDados.getSenha().isBlank()) {
             existente.setSenha(encoder.encode(novosDados.getSenha()));
@@ -86,7 +89,6 @@ public class UsuarioService {
         if (!usuarioRepository.existsById(id)) {
             throw new RuntimeException("Usuário não encontrado");
         }
-
         usuarioRepository.deleteById(id);
     }
 }
