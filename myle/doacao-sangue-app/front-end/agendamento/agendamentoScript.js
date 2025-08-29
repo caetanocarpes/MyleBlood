@@ -19,19 +19,16 @@ function renderCalendar(date) {
 
     let days = '';
 
-    // Dias do mês anterior
     for (let i = firstDay - 1; i >= 0; i--) {
         days += `<div class="prev-month">${prevLastDate - i}</div>`;
     }
 
-    // Dias do mês atual
     for (let i = 1; i <= lastDate; i++) {
         const today = new Date();
         const isToday = i === today.getDate() && month === today.getMonth() && year === today.getFullYear();
         days += `<div class="${isToday ? 'today' : ''}" data-day="${i}">${i}</div>`;
     }
 
-    // Dias do próximo mês
     const nextDays = 42 - (firstDay + lastDate);
     for (let i = 1; i <= nextDays; i++) {
         days += `<div class="next-month">${i}</div>`;
@@ -39,7 +36,6 @@ function renderCalendar(date) {
 
     daysContainer.innerHTML = days;
 
-    // Evento de clique nos dias atuais
     document.querySelectorAll('.days div').forEach(day => {
         day.addEventListener('click', () => {
             if (!day.classList.contains('prev-month') && !day.classList.contains('next-month')) {
@@ -74,44 +70,160 @@ document.getElementById('close-modal').addEventListener('click', () => {
     document.getElementById('modal').style.display = 'none';
 });
 
-// Confirmar agendamento
-document.getElementById('confirmar-agendamento').addEventListener('click', () => {
-    const hora = document.getElementById('hora').value;
+// Função para preencher os dados do usuário na sidebar
+function preencherSidebar(dados) {
+    document.querySelector('.sidebar .Nome').textContent = dados.nome;
+    document.querySelector('.sidebar .info:nth-child(3)').textContent = `CPF: ${dados.cpf}`;
+    document.querySelector('.sidebar .info:nth-child(4)').textContent = `Tipo sanguíneo: ${dados.tipoSanguineo}`;
+    document.querySelector('.sidebar .info:nth-child(5)').textContent = `Peso: ${dados.pesoKg} kg`;
+    document.querySelector('.sidebar .info:nth-child(6)').textContent = `Altura: ${dados.alturaCm} cm`;
+}
 
-    if (!hora) {
-        alert('Preencha o horário!');
+// Função para carregar dados do usuário do backend usando JWT
+async function carregarUsuario() {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Usuário não autenticado');
+            return;
+        }
+
+        const response = await fetch('http://localhost:8080/usuarios/meu-perfil', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            }
+        });
+
+        if (!response.ok) throw new Error('Erro ao carregar dados do usuário');
+
+        const dados = await response.json();
+        preencherSidebar(dados);
+
+    } catch (error) {
+        console.error(error);
+        alert('Não foi possível carregar os dados do usuário.');
+    }
+}
+
+// Função para carregar histórico do backend
+async function carregarHistorico() {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const response = await fetch('http://localhost:8080/agendamentos/historico', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            }
+        });
+
+        if (!response.ok) throw new Error('Erro ao carregar histórico');
+
+        const historico = await response.json();
+
+        if (historico.length > 0) {
+            textoInicial.style.display = 'none';
+        }
+
+        historico.forEach(item => {
+            const div = document.createElement('div');
+            div.classList.add('agendamento-item');
+            div.innerHTML = `<span>${new Date(item.data).toLocaleDateString('pt-BR')} - ${item.horario} - ${item.nomePosto} (${item.cidade}/${item.estado})</span>`;
+
+            const vistoBtn = document.createElement('button');
+            vistoBtn.textContent = '✔';
+            vistoBtn.addEventListener('click', () => {
+                div.style.textDecoration = 'line-through';
+                div.style.opacity = '0.6';
+                vistoBtn.disabled = true;
+            });
+
+            div.appendChild(vistoBtn);
+            agendamentosContainer.appendChild(div);
+        });
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+// Confirmar agendamento (salvando no backend)
+document.getElementById('confirmar-agendamento').addEventListener('click', async () => {
+    const hora = document.getElementById('hora').value;
+    const cidade = document.getElementById('cidade').value;
+    const estado = document.getElementById('estado').value;
+    const posto = document.getElementById('posto').value;
+
+    if (!hora || !cidade || !estado || !posto) {
+        alert('Preencha todos os campos!');
         return;
     }
 
-    // Cria elemento do agendamento
-    const agendamentoDiv = document.createElement('div');
-    agendamentoDiv.classList.add('agendamento-item');
-
-    // Botão de visto
-    const vistoBtn = document.createElement('button');
-    vistoBtn.textContent = '✔';
-    vistoBtn.addEventListener('click', () => {
-        agendamentoDiv.style.textDecoration = 'line-through';
-        agendamentoDiv.style.opacity = '0.6';
-        vistoBtn.disabled = true;
-    });
-
-    agendamentoDiv.innerHTML = `<span>${selectedDate.toLocaleDateString('pt-BR')} - ${hora}</span>`;
-    agendamentoDiv.appendChild(vistoBtn);
-
-    agendamentosContainer.appendChild(agendamentoDiv);
-
-    // Esconde o texto inicial se for o primeiro agendamento
-    if (textoInicial) {
-        textoInicial.style.display = 'none';
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Usuário não autenticado');
+        return;
     }
 
-    // Fecha modal
-    document.getElementById('modal').style.display = 'none';
+    const agendamentoDTO = {
+        data: selectedDate.toISOString().split('T')[0],
+        horario: hora,
+        cidade: cidade,
+        estado: estado,
+        nomePosto: posto
+    };
 
-    // Limpa input
-    document.getElementById('hora').value = '';
+    try {
+        const response = await fetch('http://localhost:8080/agendamentos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(agendamentoDTO)
+        });
+
+        if (!response.ok) throw new Error('Erro ao salvar agendamento');
+
+        const agendamentoSalvo = await response.json();
+
+        const div = document.createElement('div');
+        div.classList.add('agendamento-item');
+        div.innerHTML = `<span>${selectedDate.toLocaleDateString('pt-BR')} - ${hora} - ${posto} (${cidade}/${estado})</span>`;
+
+        const vistoBtn = document.createElement('button');
+        vistoBtn.textContent = '✔';
+        vistoBtn.addEventListener('click', () => {
+            div.style.textDecoration = 'line-through';
+            div.style.opacity = '0.6';
+            vistoBtn.disabled = true;
+        });
+
+        div.appendChild(vistoBtn);
+        agendamentosContainer.appendChild(div);
+
+        if (textoInicial) textoInicial.style.display = 'none';
+
+        document.getElementById('modal').style.display = 'none';
+        document.getElementById('hora').value = '';
+        document.getElementById('cidade').value = '';
+        document.getElementById('estado').value = '';
+
+    } catch (error) {
+        console.error(error);
+        alert('Não foi possível salvar o agendamento.');
+    }
 });
 
 // Inicializa calendário
 renderCalendar(currentDate);
+
+// Carrega dados e histórico ao iniciar
+window.addEventListener('DOMContentLoaded', () => {
+    carregarUsuario();
+    carregarHistorico();
+});

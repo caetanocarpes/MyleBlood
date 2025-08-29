@@ -19,11 +19,11 @@
             <img src="img/logoMyle.png" alt="Logo" class="logo">
         </a>
         <img src="img/profile.png" alt="Avatar" class="avatar">
-        <h3>Rafael Reis Stumm</h3>
-        <div class="info"><img src="img/telephone.png" alt="Telefone"> (55) 99664-0568 </div>
-        <div class="info"><img src="img/blood.png" alt="Sangue"> A+ </div>
-        <div class="info"><img src="img/weight.png" alt="Peso"> 78kg </div>
-        <div class="info"><img src="img/altura.png" alt="Altura"> 1,80m </div>
+        <h3 class="Nome"></h3>
+        <div class="info"><img src="img/telephone.png" alt="CPF">  </div>
+        <div class="info"><img src="img/blood.png" alt="Sangue">  </div>
+        <div class="info"><img src="img/weight.png" alt="Peso">  </div>
+        <div class="info"><img src="img/altura.png" alt="Altura">  </div>
         <button class="logout">Logout</button>
     </div>
 
@@ -69,13 +69,23 @@
     <div class="modal-content">
         <span id="close-modal" class="close">&times;</span>
         <p id="selected-date"></p>
+
         <label for="hora">Horário:</label>
         <input type="time" id="hora" required>
-        <label for="local">Local:</label>
-        <input type="text" id="local" placeholder="Digite o local" required>
+
+        <label for="cidade">Cidade:</label>
+        <input type="text" id="cidade" placeholder="Digite a cidade" required>
+
+        <label for="estado">Estado:</label>
+        <input type="text" id="estado" placeholder="Digite o estado" required>
+
+        <label for="posto">Posto de Doação:</label>
+        <input type="text" id="posto" placeholder="Ex: Hemocentro Central" readonly>
+
         <button id="confirmar-agendamento">Confirmar</button>
     </div>
 </div>
+
 
 <script src="agendamentoScript.js"></script>
 </body>

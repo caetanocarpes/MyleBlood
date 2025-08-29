@@ -40,7 +40,7 @@ body {
   align-items: center;
   background-color: white;
   border-radius: 20px;
-  padding: 20px 60px;
+  padding: 10px 60px;
   max-width: 850px;
   margin: 40px auto;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
@@ -110,18 +110,33 @@ body {
   width: 100%;
 }
 
-.inputbox input {
-  width: 100%;
-  padding: 10px 20px;
-  border: none;
-  outline: none;
-  font-size: 18px;
-  font-family: 'Open Sans', sans-serif;
-  font-weight: 700;
-  color: #333;
-  background: transparent;
-  box-sizing: border-box;
+.inputbox input,
+.inputbox select {
+    width: 100%;
+    padding: 10px 20px;
+    border: none;
+    outline: none;
+    font-size: 18px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 700;
+    color: #333;
+    background: transparent;
+    box-sizing: border-box;
+    appearance: none; /* remove seta padrão */
 }
+
+.inputbox select {
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="10"><polyline points="1,1 7,7 13,1" fill="none" stroke="%23333" stroke-width="2"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 12px;
+    color: #b9b9b9;
+}
+
+.inputbox select:valid {
+    color: #333; /* ou preto */
+}
+
 
 .inputbox input::placeholder {
   color: #b9b9b9;
@@ -138,7 +153,7 @@ input:-webkit-autofill {
 .signinbox2 {
   width: 100%;        /* ocupa toda largura do pai */
   max-width: 800px;   /* limita o tamanho máximo, se quiser */
-  padding: 9px;
+  padding: 0.5px;
   border-radius: 40px;
   font-family: 'Open Sans', sans-serif;
   display: flex;
