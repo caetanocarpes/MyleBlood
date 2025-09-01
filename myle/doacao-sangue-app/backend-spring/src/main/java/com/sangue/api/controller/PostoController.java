@@ -20,4 +20,10 @@ public class PostoController {
     public List<Posto> listarPostos() {
         return postoRepository.findAll();
     }
+
+    // Salva um novo posto
+    @PostMapping
+    public Posto salvarPosto(@RequestBody Posto posto) {
+        return postoRepository.save(posto);
+    }
 }

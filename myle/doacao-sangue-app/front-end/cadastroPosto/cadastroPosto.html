@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Myle Blood | Cadastro Posto </title>
+
+    <!-- Logo do Site -->
+    <link rel="icon" href="img/mb-iconp.png" type="image/png" />
+
+    <!-- CSS local -->
+    <link rel="stylesheet" href="cadastroPostoStyle.css"/>
+
+    <!-- CSS AOS -->
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet"/>
+
+    <!-- Open-Sans Font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wdth,wght@0,75..100,622;1,75..100,622&display=swap');
+    </style>
+
+</head>
+<body>
+
+<div class="form-container">
+
+    <img src="../sign-in/img/blood.png" alt="blood1" class="blood1">
+    <img src="../sign-in/img/blood.png" alt="blood2" class="blood2">
+
+    <div class="logo-wrapper">
+        <a href="../home/home.html">
+            <img src="../sign-in/img/logo-myle.png" class="logo" alt="logo" />
+        </a>
+    </div>
+
+    <p class="cadastro"> Cadastro do Posto </p>
+
+    <div class="form-content">
+        <div class="signinbox">
+            <form id="formCadastroPosto">
+
+                <!-- Nome do Posto -->
+                <div class="inputbox">
+                    <input type="text" id="nome" name="nome" placeholder="Nome do Posto" required>
+                </div>
+
+                <!-- Endereço -->
+                <div class="inputbox">
+                    <input type="text" id="endereco" name="endereco" placeholder="Endereço Completo" required>
+                </div>
+
+                <!-- Cidade e Estado -->
+                <div class="signinbox2">
+                    <div class="inputbox">
+                        <input type="text" id="cidade" name="cidade" placeholder="Cidade" required>
+                    </div>
+                    <div class="inputbox">
+                        <input type="text" id="estado" name="estado" placeholder="Estado (UF)" maxlength="2" required>
+                    </div>
+                </div>
+
+                <!-- Horário de Funcionamento -->
+                <div class="inputbox">
+                    <input type="text" id="horarioFuncionamento" name="horarioFuncionamento" placeholder="Horário de Funcionamento" required>
+                </div>
+
+                <!-- Botão -->
+                <button type="submit" class="submit-btn">Cadastrar Posto</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JS Local -->
+<script src="cadastroPostoScript.js"></script>
+
+</body>
+</html>

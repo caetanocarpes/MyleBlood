@@ -7,7 +7,7 @@ body {
     background-position: center;
     display: flex;
     justify-content: center;  /* Centraliza horizontalmente */
-    align-items: center; 
+    align-items: center;
     height: 100vh;
     overflow: hidden;
 }
@@ -20,7 +20,7 @@ body {
   z-index: -1;            /* coloca atrás de tudo */
   pointer-events: none;   /* impede que atrapalhe cliques */
   user-select: none;      /* impede seleção */
-  z-index: 10;   
+  z-index: 10;
 }
 
 .blood1 {
@@ -80,7 +80,7 @@ body {
   margin-top: 8px;
   margin-bottom: 8px;
   margin-left: 35px;
-  text-align: left; 
+  text-align: left;
   font-family: "Open Sans", sans-serif;
   font-weight: 700;
   font-size: 22px;
@@ -89,7 +89,7 @@ body {
   width: 100%;
 }
 
-.signinbox { 
+.signinbox {
   margin-left: 0px;
   width: 820px;      /* ocupa toda largura do container */
   max-width: 100%;
