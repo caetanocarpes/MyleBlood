@@ -33,13 +33,13 @@ document.getElementById('formCadastro').addEventListener('submit', async functio
     const cpf = document.getElementById('cpf').value.trim();
     const dataNascimentoPtBr = document.getElementById('dataNascimento').value.trim();
     const tipoSanguineo = document.getElementById('tipoSanguineo').value;
-    const alturaM = parseFloat(document.getElementById('altura').value); // em metros
-    const pesoKg = parseFloat(document.getElementById('peso').value);
+    const alturaCm = parseInt(document.getElementById('altura').value); // agora em centímetros
+    const pesoKg = parseFloat(document.getElementById('peso').value);   // já em kg
     const senha = document.getElementById('password').value;
     const confirmarSenha = document.getElementById('cpassword').value;
 
     // Valida campos obrigatórios
-    if (!nome || !email || !cpf || !dataNascimentoPtBr || !tipoSanguineo || !alturaM || !pesoKg || !senha || !confirmarSenha) {
+    if (!nome || !email || !cpf || !dataNascimentoPtBr || !tipoSanguineo || !alturaCm || !pesoKg || !senha || !confirmarSenha) {
         alert('Preencha todos os campos.');
         return;
     }
@@ -57,9 +57,9 @@ document.getElementById('formCadastro').addEventListener('submit', async functio
         return;
     }
 
-    // Valida altura e peso
-    if (alturaM < 0.5 || alturaM > 2.5) {
-        alert('Altura inválida. Insira um valor entre 0,50 e 2,50 metros.');
+    // Valida altura e peso de acordo com o backend
+    if (alturaCm < 120 || alturaCm > 230) {
+        alert('Altura inválida. Insira um valor entre 120 e 230 cm.');
         return;
     }
     if (pesoKg < 30 || pesoKg > 300) {
@@ -67,10 +67,7 @@ document.getElementById('formCadastro').addEventListener('submit', async functio
         return;
     }
 
-    // Converte altura para cm (inteiro) para compatibilidade com Java
-    const alturaCm = Math.round(alturaM * 100);
-
-    // Monta objeto para envio compatível com sua entidade Java
+    // Monta objeto para envio compatível com a entidade Java
     const dadosCadastro = {
         nome: nome,
         email: email,
@@ -89,12 +86,15 @@ document.getElementById('formCadastro').addEventListener('submit', async functio
             body: JSON.stringify(dadosCadastro)
         });
 
+        const texto = await response.text(); // pega a resposta do backend
+        console.log('Status HTTP:', response.status);
+        console.log('Resposta do backend:', texto);
+
         if (response.ok) {
             alert('Cadastro realizado com sucesso! Você será redirecionado para o login.');
             window.location.href = '../login/login.html';
         } else {
-            const erro = await response.text();
-            alert('Erro ao cadastrar: ' + erro);
+            alert('Erro ao cadastrar. Veja o console do navegador para detalhes.');
         }
     } catch (error) {
         console.error('Erro na requisição:', error);
