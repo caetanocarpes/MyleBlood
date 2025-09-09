@@ -14,10 +14,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
 
 /**
  * Filtro JWT executado uma vez por requisição.
- * Agora ele IGNORA rotas públicas (ex.: /auth/**), para não barrar o login.
+ * - Ignora rotas públicas (/auth/**) e preflight (OPTIONS)
+ * - Lê Authorization: Bearer <token>
+ * - Valida e coloca o usuário no SecurityContext
  */
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -36,36 +39,53 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // IMPORTANTE: não interceptar rotas públicas (login, registro, etc.)
+        // 1) Ignora rotas públicas
         if (path.startsWith("/auth/")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Lê o Authorization: Bearer <token>
-        String authHeader = request.getHeader("Authorization");
+        // 2) Ignora preflight CORS
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
+        // 3) Se já existe autenticação no contexto, segue em frente
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 4) Lê o Authorization: Bearer <token>
+        String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
+            String token = authHeader.substring(7).trim();
 
             try {
-                // Extrai e valida informações do token
-                String email = jwtUtil.extrairEmail(token);
+                // Valida assinatura/expiração
+                if (jwtUtil.tokenValido(token)) {
+                    String email = jwtUtil.extrairEmail(token);
 
-                // Carrega o usuário para colocar no contexto de segurança
-                Usuario usuario = usuarioRepository.findByEmail(email)
-                        .orElseThrow(() -> new RuntimeException("Usuário não encontrado para o token"));
+                    // Carrega o usuário para o contexto (poderia buscar também roles/perfis)
+                    Usuario usuario = usuarioRepository.findByEmail(email)
+                            .orElse(null);
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(usuario, null, null);
+                    if (usuario != null) {
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(
+                                        usuario, // principal
+                                        null,    // credentials (não expomos)
+                                        Collections.emptyList() // authorities (ajuste quando tiver roles)
+                                );
 
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // Marca a requisição como autenticada
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    }
+                }
             } catch (Exception e) {
-                // Se token inválido/expirado, segue sem autenticar (as rotas privadas negarão o acesso)
+                // Token inválido/expirado/etc -> segue sem autenticar.
+                // Rotas privadas vão devolver 401 automaticamente.
                 System.out.println("Erro no filtro JWT: " + e.getMessage());
             }
         }

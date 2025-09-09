@@ -1,6 +1,7 @@
 package com.sangue.api.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,10 +9,16 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 /**
- * Entidade que representa um agendamento de doação
+ * Entidade de agendamento de doação.
+ * - Unique (posto, data, horario) para evitar conflito de horário no posto.
+ * - Relaciona com usuário e posto.
  */
 @Entity
-@Table(name = "agendamentos")
+@Table(name = "agendamentos",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_agendamento_posto_data_horario",
+                columnNames = {"posto_id", "data", "horario"}
+        ))
 @Getter
 @Setter
 public class Agendamento {
@@ -20,16 +27,19 @@ public class Agendamento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Usuário que fez o agendamento
-    @ManyToOne
-    @JoinColumn(name = "usuario_id")
+    @NotNull
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    // Posto onde será feita a doação
-    @ManyToOne
-    @JoinColumn(name = "posto_id")
+    @NotNull
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "posto_id", nullable = false)
     private Posto posto;
 
-    private LocalDate data;     // Data da doação
-    private LocalTime horario;  // Horário da doação
+    @Column(nullable = false)
+    private LocalDate data;
+
+    @Column(nullable = false)
+    private LocalTime horario;
 }

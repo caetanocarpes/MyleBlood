@@ -2,22 +2,22 @@ package com.sangue.api.controller;
 
 import com.sangue.api.entity.Posto;
 import com.sangue.api.repository.PostoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/postos")
+@RequestMapping("/api/postos")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class PostoController {
 
-    @Autowired
-    private PostoRepository postoRepository;
+    private final PostoRepository postoRepository;
 
-    // Lista todos os postos cadastrados
     @GetMapping
-    public List<Posto> listarPostos() {
-        return postoRepository.findAll();
+    public ResponseEntity<List<Posto>> listarPostos() {
+        return ResponseEntity.ok(postoRepository.findAll());
     }
 }

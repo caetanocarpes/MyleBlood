@@ -6,16 +6,16 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-// Repositório JPA para manipular a entidade Usuario (CRUD + buscas personalizadas)
+/**
+ * Repositório JPA para a entidade Usuario.
+ * Fornece CRUD padrão e buscas customizadas por email e CPF.
+ */
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
-    // Busca um usuário pelo e-mail
     Optional<Usuario> findByEmail(String email);
 
-    // Verifica se já existe um usuário com o e-mail informado
     boolean existsByEmail(String email);
 
-    // Verifica se já existe um usuário com o CPF informado
     boolean existsByCpf(String cpf);
 }

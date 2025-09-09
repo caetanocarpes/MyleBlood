@@ -1,8 +1,8 @@
 package com.sangue.api.entity;
 
 public enum TipoSanguineo {
-    A_POS, A_NEG,
-    B_POS, B_NEG,
-    AB_POS, AB_NEG,
-    O_POS, O_NEG
+    A_POSITIVO, A_NEGATIVO,
+    B_POSITIVO, B_NEGATIVO,
+    AB_POSITIVO, AB_NEGATIVO,
+    O_POSITIVO, O_NEGATIVO
 }

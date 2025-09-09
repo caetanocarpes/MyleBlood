@@ -13,6 +13,7 @@ import lombok.Setter;
 @Setter
 public class Posto {
 
+    @Column(nullable = false)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
