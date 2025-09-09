@@ -30,12 +30,7 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder; // BCrypt injetado via SecurityConfig
 
-    /**
-     * Cadastra um novo usuário após validações.
-     * Lança:
-     * - IllegalStateException (409) para conflito de email/CPF
-     * - IllegalArgumentException (400) para erros de validação (idade/data)
-     */
+    /** Cadastra um novo usuário após validações. */
     @Transactional
     public Usuario cadastrar(UsuarioDTO dto) {
         // Normaliza email (evita duplicidade por maiúsculas/minúsculas)
@@ -59,45 +54,33 @@ public class UsuarioService {
         usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
 
         // Campos adicionais
-        usuario.setTipoSanguineo(dto.getTipoSanguineo());
+        usuario.setTipoSanguineo(dto.getTipoSanguineo()); // enum
         usuario.setPesoKg(dto.getPesoKg());
         usuario.setAlturaCm(dto.getAlturaCm());
 
         return usuarioRepository.save(usuario);
     }
 
-    /**
-     * Retorna todos os usuários.
-     */
+    /** Retorna todos os usuários. */
     public List<Usuario> buscarTodos() {
         return usuarioRepository.findAll();
     }
 
-    /**
-     * Retorna um usuário pelo ID, ou null se não existir.
-     * (Prefira usar a versão que lança 404 se o fluxo exigir)
-     */
+    /** Retorna um usuário pelo ID, ou null se não existir. */
     public Usuario buscarPorId(Long id) {
         return usuarioRepository.findById(id).orElse(null);
     }
 
-    /**
-     * Retorna um usuário pelo email, ou null se não existir.
-     */
+    /** Retorna um usuário pelo email, ou null se não existir. */
     public Usuario buscarPorEmail(String emailRaw) {
         String email = normalizarEmail(emailRaw);
         return usuarioRepository.findByEmail(email).orElse(null);
     }
 
     /**
-     * Atualiza dados do usuário existente.
+     * Atualiza dados do usuário existente (parcial).
      * - Checa conflito de email/CPF quando alterados.
      * - Re-hash da senha apenas se informada e não vazia.
-     *
-     * Lança:
-     * - EntityNotFoundException (404) se o ID não existir
-     * - IllegalStateException (409) se novo email/CPF já estiver em uso por outro usuário
-     * - IllegalArgumentException (400) para validações de data/idade
      */
     @Transactional
     public Usuario atualizarUsuario(Long id, Usuario novosDados) {
@@ -135,9 +118,9 @@ public class UsuarioService {
             existente.setDataNascimento(novosDados.getDataNascimento());
         }
 
-        // Campos opcionais
-        if (isNonBlank(novosDados.getTipoSanguineo())) {
-            existente.setTipoSanguineo(novosDados.getTipoSanguineo().trim());
+        // Campos opcionais (enum e numéricos)
+        if (novosDados.getTipoSanguineo() != null) { // <-- troca do isNonBlank por != null
+            existente.setTipoSanguineo(novosDados.getTipoSanguineo());
         }
         if (novosDados.getPesoKg() != null) {
             existente.setPesoKg(novosDados.getPesoKg());
@@ -154,10 +137,7 @@ public class UsuarioService {
         return usuarioRepository.save(existente);
     }
 
-    /**
-     * Remove usuário por ID.
-     * Lança 404 se não existir.
-     */
+    /** Remove usuário por ID. */
     @Transactional
     public void deletarUsuario(Long id) {
         if (!usuarioRepository.existsById(id)) {
@@ -187,9 +167,7 @@ public class UsuarioService {
         }
     }
 
-    /**
-     * Regra básica de idade para doação: 16 a 69 anos.
-     */
+    /** Regra básica de idade para doação: 16 a 69 anos. */
     private void validarIdadeDoacao(LocalDate nascimento) {
         int idade = Period.between(nascimento, LocalDate.now()).getYears();
         if (idade < 16 || idade > 69) {

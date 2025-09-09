@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,8 +24,8 @@ import java.util.Map;
  * - GET  /auth/me        → retorna dados do usuário autenticado
  *
  * Observações:
- * - O JwtFilter já valida o token e coloca o Usuario no SecurityContext.
- * - Este controller usa PasswordEncoder (BCrypt) para validar as senhas.
+ * - O JwtFilter valida o token e coloca o Usuario no SecurityContext.
+ * - PasswordEncoder (BCrypt) valida a senha no login.
  */
 @RestController
 @RequestMapping("/auth")
@@ -39,55 +38,48 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder; // configurado no SecurityConfig
 
-    /**
-     * Modelo de resposta do login.
-     * Mantém o payload estável e legível para o front.
-     */
+    /** Payload de resposta do login. */
     public record LoginResponse(
             String token,
-            long   expiresAt, // epoch millis (quando expira)
-            Map<String, Object> usuario // dados essenciais p/ front
+            long   expiresAt,             // epoch millis (quando expira)
+            Map<String, Object> usuario   // dados essenciais pro front
     ) {}
 
     /**
      * Registro de usuário.
-     * - Valida o UsuarioDTO com Bean Validation.
-     * - Usa o UsuarioService para salvar com senha criptografada.
+     * - Delega validações ao service (duplicidade/idade/formato)
+     * - Retorna 201 Created + id
+     * - Erros são tratados pelo GlobalExceptionHandler (400/409)
      */
     @PostMapping("/register")
-    public ResponseEntity<?> registrar(@Valid @RequestBody UsuarioDTO dto) {
-        try {
-            usuarioService.cadastrar(dto);
-            return ResponseEntity.ok("Usuário cadastrado com sucesso!");
-        } catch (RuntimeException e) {
-            // Exemplo: email já existente, CPF duplicado etc.
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+    public ResponseEntity<Map<String, Object>> registrar(@Valid @RequestBody UsuarioDTO dto) {
+        Usuario criado = usuarioService.cadastrar(dto);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", "Usuário cadastrado com sucesso!");
+        body.put("id", criado.getId());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
     /**
      * Login:
      * - Valida email/senha
      * - Gera token JWT
-     * - Retorna também expiresAt e dados essenciais do usuário
+     * - Retorna expiresAt e dados essenciais do usuário
+     * - 401 se credenciais inválidas
      */
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginDTO loginDTO) {
-        Usuario usuario = usuarioRepository.findByEmail(loginDTO.getEmail())
-                .orElse(null);
+        Usuario usuario = usuarioRepository.findByEmail(loginDTO.getEmail()).orElse(null);
 
-        // Valida credenciais
         if (usuario == null || !passwordEncoder.matches(loginDTO.getSenha(), usuario.getSenha())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou senha inválidos");
         }
 
-        // Gera token JWT
         String token = jwtUtil.gerarToken(usuario.getEmail());
-
-        // Calcula expiração direto pela config (opção 1)
         long expiresAt = System.currentTimeMillis() + jwtUtil.getExpirationMillis();
 
-        // Monta mapa com dados essenciais do usuário
         Map<String, Object> usr = new HashMap<>();
         usr.put("id", usuario.getId());
         usr.put("nome", usuario.getNome());
@@ -101,14 +93,12 @@ public class AuthController {
     }
 
     /**
-     * Retorna dados do usuário autenticado com base no SecurityContext.
-     * - O JwtFilter já setou o principal como Usuario.
-     * - Se não autenticado, retorna 401.
+     * Perfil do usuário autenticado.
+     * - Usa Authentication para obter o principal (Usuario)
+     * - 401 se não autenticado
      */
     @GetMapping("/me")
-    public ResponseEntity<?> perfil() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
+    public ResponseEntity<?> perfil(Authentication auth) {
         if (auth == null || !(auth.getPrincipal() instanceof Usuario usuario)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Não autenticado");
         }
