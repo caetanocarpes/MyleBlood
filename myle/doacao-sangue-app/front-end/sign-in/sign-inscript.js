@@ -30,11 +30,11 @@ document.getElementById('formCadastro').addEventListener('submit', async functio
 
     const nome = document.getElementById('name').value.trim();
     const email = document.getElementById('email').value.trim();
-    const cpf = document.getElementById('cpf').value.trim();
+    const cpf = document.getElementById('cpf').value.replace(/\D/g, ''); // CPF limpo
     const dataNascimentoPtBr = document.getElementById('dataNascimento').value.trim();
     const tipoSanguineo = document.getElementById('tipoSanguineo').value;
-    const alturaCm = parseInt(document.getElementById('altura').value); // agora em centímetros
-    const pesoKg = parseFloat(document.getElementById('peso').value);   // já em kg
+    const alturaCm = parseInt(document.getElementById('altura').value);
+    const pesoKg = parseFloat(document.getElementById('peso').value);
     const senha = document.getElementById('password').value;
     const confirmarSenha = document.getElementById('cpassword').value;
 
@@ -50,6 +50,12 @@ document.getElementById('formCadastro').addEventListener('submit', async functio
         return;
     }
 
+    // Valida tamanho mínimo da senha
+    if (senha.length < 6) {
+        alert('A senha deve ter no mínimo 6 caracteres.');
+        return;
+    }
+
     // Valida data
     const dataNascimentoISO = converterDataParaISO(dataNascimentoPtBr);
     if (!dataNascimentoISO) {
@@ -57,7 +63,7 @@ document.getElementById('formCadastro').addEventListener('submit', async functio
         return;
     }
 
-    // Valida altura e peso de acordo com o backend
+    // Valida altura e peso
     if (alturaCm < 120 || alturaCm > 230) {
         alert('Altura inválida. Insira um valor entre 120 e 230 cm.');
         return;
@@ -86,7 +92,7 @@ document.getElementById('formCadastro').addEventListener('submit', async functio
             body: JSON.stringify(dadosCadastro)
         });
 
-        const texto = await response.text(); // pega a resposta do backend
+        const texto = await response.text();
         console.log('Status HTTP:', response.status);
         console.log('Resposta do backend:', texto);
 

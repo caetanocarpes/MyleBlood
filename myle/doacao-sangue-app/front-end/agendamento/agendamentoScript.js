@@ -79,16 +79,20 @@ function preencherSidebar(dados) {
     document.querySelector('.sidebar .info:nth-child(6)').textContent = `Altura: ${dados.alturaCm} cm`;
 }
 
-// Função para carregar dados do usuário do backend usando JWT
+// ------------------- FUNÇÕES COM DEBUG -------------------
+
+// Função para carregar dados do usuário com debug
 async function carregarUsuario() {
     try {
         const token = localStorage.getItem('token');
+        console.log('Token armazenado:', token); // DEBUG
+
         if (!token) {
-            alert('Usuário não autenticado');
+            alert('Usuário não autenticado (token vazio)');
             return;
         }
 
-        const response = await fetch('http://localhost:8080/usuarios/meu-perfil', {
+        const response = await fetch('http://localhost:8080/auth/me', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -96,21 +100,26 @@ async function carregarUsuario() {
             }
         });
 
-        if (!response.ok) throw new Error('Erro ao carregar dados do usuário');
+        console.log('Status do fetch /auth/me:', response.status); // DEBUG
+
+        if (!response.ok) throw new Error(`Erro ao carregar dados do usuário: status ${response.status}`);
 
         const dados = await response.json();
+        console.log('Dados do usuário carregados:', dados); // DEBUG
         preencherSidebar(dados);
 
     } catch (error) {
-        console.error(error);
-        alert('Não foi possível carregar os dados do usuário.');
+        console.error('Erro em carregarUsuario():', error);
+        alert('Não foi possível carregar os dados do usuário. Veja console.');
     }
 }
 
-// Função para carregar histórico do backend
+// Função para carregar histórico com debug
 async function carregarHistorico() {
     try {
         const token = localStorage.getItem('token');
+        console.log('Token para histórico:', token); // DEBUG
+
         if (!token) return;
 
         const response = await fetch('http://localhost:8080/agendamentos/historico', {
@@ -121,9 +130,12 @@ async function carregarHistorico() {
             }
         });
 
-        if (!response.ok) throw new Error('Erro ao carregar histórico');
+        console.log('Status do fetch /agendamentos/historico:', response.status); // DEBUG
+
+        if (!response.ok) throw new Error(`Erro ao carregar histórico: status ${response.status}`);
 
         const historico = await response.json();
+        console.log('Histórico carregado:', historico); // DEBUG
 
         if (historico.length > 0) {
             textoInicial.style.display = 'none';
@@ -147,11 +159,11 @@ async function carregarHistorico() {
         });
 
     } catch (error) {
-        console.error(error);
+        console.error('Erro em carregarHistorico():', error);
     }
 }
 
-// Confirmar agendamento (salvando no backend)
+// ------------------- CONFIRMAR AGENDAMENTO -------------------
 document.getElementById('confirmar-agendamento').addEventListener('click', async () => {
     const hora = document.getElementById('hora').value;
     const cidade = document.getElementById('cidade').value;
@@ -222,7 +234,7 @@ document.getElementById('confirmar-agendamento').addEventListener('click', async
 // Inicializa calendário
 renderCalendar(currentDate);
 
-// Carrega dados e histórico ao iniciar
+// ------------------- CARREGA DADOS E HISTÓRICO -------------------
 window.addEventListener('DOMContentLoaded', () => {
     carregarUsuario();
     carregarHistorico();

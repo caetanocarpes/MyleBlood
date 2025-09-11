@@ -30,7 +30,7 @@ document.querySelector("form").addEventListener("submit", async function(event) 
             const data = await response.json();
             alert("Login realizado com sucesso!");
             localStorage.setItem("token", data.token);
-            window.location.href = "../dashboard/index.html";
+            window.location.href = "../agendamento/agendamento.html";
         } else {
             // Tenta pegar o texto da resposta
             const erroTexto = await response.text();

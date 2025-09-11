@@ -1,8 +1,29 @@
 package com.sangue.api.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public enum TipoSanguineo {
-    A_POSITIVO, A_NEGATIVO,
-    B_POSITIVO, B_NEGATIVO,
-    AB_POSITIVO, AB_NEGATIVO,
-    O_POSITIVO, O_NEGATIVO
+    @JsonProperty("A+")
+    A_POSITIVO,
+
+    @JsonProperty("A-")
+    A_NEGATIVO,
+
+    @JsonProperty("B+")
+    B_POSITIVO,
+
+    @JsonProperty("B-")
+    B_NEGATIVO,
+
+    @JsonProperty("AB+")
+    AB_POSITIVO,
+
+    @JsonProperty("AB-")
+    AB_NEGATIVO,
+
+    @JsonProperty("O+")
+    O_POSITIVO,
+
+    @JsonProperty("O-")
+    O_NEGATIVO
 }
