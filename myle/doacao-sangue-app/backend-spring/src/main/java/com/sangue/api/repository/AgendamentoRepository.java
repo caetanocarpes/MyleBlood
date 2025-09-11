@@ -12,25 +12,29 @@ import java.util.Map;
 
 public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> {
 
-    // Busca todos os agendamentos de um posto em uma data específica
+    // Todos os agendamentos de um posto numa data
     List<Agendamento> findByPostoIdAndData(Long postoId, LocalDate data);
 
-    // Busca todos os agendamentos feitos por um usuário
+    // Todos os agendamentos de um usuário
     List<Agendamento> findByUsuario(Usuario usuario);
 
-    // Busca os horários ocupados em um posto numa data específica (para mostrar no frontend)
+    // Horários ocupados num posto numa data (para o front bloquear)
     @Query("SELECT a.horario FROM Agendamento a WHERE a.posto.id = :postoId AND a.data = :data")
     List<LocalTime> findHorariosOcupadosPorPostoEData(Long postoId, LocalDate data);
 
-    // Retorna a última data registrada de agendamento (para o dashboard admin)
+    // Verificação de conflito (posto + data + hora)
+    boolean existsByPosto_IdAndDataAndHorario(Long postoId, LocalDate data, LocalTime horario);
+
+    // Verifica se o usuário já tem agendamento no mesmo instante (qualquer posto)
+    boolean existsByUsuario_IdAndDataAndHorario(Long usuarioId, LocalDate data, LocalTime horario);
+
+    // --- métricas/admin (opcionais que você já usa) ---
     @Query("SELECT MAX(a.data) FROM Agendamento a")
     LocalDate findUltimaDataAgendamento();
 
-    // Ranking dos postos com mais agendamentos (nome + total), ordenado do maior pro menor
     @Query("SELECT a.posto.nome, COUNT(a) FROM Agendamento a GROUP BY a.posto.nome ORDER BY COUNT(a) DESC")
     List<Object[]> rankingPorPosto();
 
-    // Retorna o histórico de doações de um usuário específico (usado no admin)
     @Query("""
         SELECT new map(
             a.posto.nome as posto,

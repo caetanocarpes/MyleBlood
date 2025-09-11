@@ -3,90 +3,69 @@ package com.sangue.api.controller;
 import com.sangue.api.dto.AgendamentoDTO;
 import com.sangue.api.dto.HistoricoDoacaoDTO;
 import com.sangue.api.entity.Agendamento;
+import com.sangue.api.entity.Usuario;
 import com.sangue.api.security.JwtUtil;
 import com.sangue.api.service.AgendamentoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalTime;
 import java.util.List;
 
+/**
+ * Endpoints de agendamento.
+ * Protegidos por JWT; preferimos obter o usuário pelo SecurityContext.
+ */
 @RestController
-@RequestMapping("/agendamentos")
+@RequestMapping("/api/agendamentos")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class AgendamentoController {
 
-    @Autowired
-    private AgendamentoService agendamentoService;
+    private final AgendamentoService agendamentoService;
+    private final JwtUtil jwtUtil; // mantido apenas para /historico via header; ideal: também usar Authentication
 
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    // Cria um novo agendamento usando o e-mail do usuário extraído do token JWT
+    /** Cria agendamento para o usuário autenticado */
     @PostMapping
-    public ResponseEntity<?> agendar(@RequestBody AgendamentoDTO dto,
-                                     @RequestHeader("Authorization") String authHeader) {
-        try {
-            String email = jwtUtil.extrairEmail(authHeader.replace("Bearer ", ""));
-            Agendamento novo = agendamentoService.agendar(email, dto);
-            return ResponseEntity.ok(novo);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Agendamento> agendar(@Valid @RequestBody AgendamentoDTO dto,
+                                               Authentication auth) {
+        Usuario user = (Usuario) auth.getPrincipal();
+        Agendamento novo = agendamentoService.agendar(user.getEmail(), dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(novo);
     }
 
-    // Lista todos os agendamentos do usuário logado
+    /** Lista agendamentos do usuário autenticado */
     @GetMapping("/me")
-    public ResponseEntity<?> meusAgendamentos(@RequestHeader("Authorization") String authHeader) {
-        try {
-            String email = jwtUtil.extrairEmail(authHeader.replace("Bearer ", ""));
-            List<Agendamento> lista = agendamentoService.listarAgendamentosDoUsuario(email);
-            return ResponseEntity.ok(lista);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(401).body("Token inválido ou usuário não encontrado.");
-        }
+    public ResponseEntity<List<Agendamento>> meusAgendamentos(Authentication auth) {
+        Usuario user = (Usuario) auth.getPrincipal();
+        return ResponseEntity.ok(agendamentoService.listarAgendamentosDoUsuario(user.getEmail()));
     }
 
-    // Cancela um agendamento, se for do próprio usuário
+    /** Cancela um agendamento do próprio usuário */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> cancelar(@PathVariable Long id,
-                                      @RequestHeader("Authorization") String authHeader) {
-        try {
-            String email = jwtUtil.extrairEmail(authHeader.replace("Bearer ", ""));
-            boolean sucesso = agendamentoService.cancelarAgendamento(id, email);
-
-            if (sucesso) return ResponseEntity.ok("Agendamento cancelado com sucesso.");
-            else return ResponseEntity.status(403).body("Você não tem permissão para cancelar este agendamento.");
-        } catch (Exception e) {
-            return ResponseEntity.status(400).body("Erro ao cancelar agendamento.");
-        }
+    public ResponseEntity<Void> cancelar(@PathVariable Long id, Authentication auth) {
+        Usuario user = (Usuario) auth.getPrincipal();
+        agendamentoService.cancelarAgendamento(id, user.getEmail());
+        return ResponseEntity.noContent().build();
     }
 
-    // Retorna os horários ocupados de um posto em uma data
+    /** Horários ocupados em um posto/data (para o front bloquear seleção) */
     @GetMapping("/ocupados")
-    public ResponseEntity<?> horariosOcupados(@RequestParam Long postoId,
-                                              @RequestParam String data) {
-        try {
-            List<LocalTime> ocupados = agendamentoService.buscarHorariosOcupados(postoId, data);
-            return ResponseEntity.ok(ocupados);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Erro ao buscar horários ocupados.");
-        }
+    public ResponseEntity<List<LocalTime>> horariosOcupados(@RequestParam Long postoId,
+                                                            @RequestParam String data) {
+        return ResponseEntity.ok(agendamentoService.buscarHorariosOcupados(postoId, data));
     }
 
-    // Retorna o histórico de doações do usuário logado
+    /** Histórico do usuário logado (se preferir, troque para Authentication também) */
     @GetMapping("/historico")
-    public ResponseEntity<?> historicoDoUsuario(@RequestHeader("Authorization") String authHeader) {
-        try {
-            String token = authHeader.replace("Bearer ", "");
-            String email = jwtUtil.extrairEmail(token);
-
-            List<HistoricoDoacaoDTO> historico = agendamentoService.buscarHistoricoDoUsuario(email);
-            return ResponseEntity.ok(historico);
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body("Token inválido ou erro ao buscar histórico.");
-        }
+    public ResponseEntity<List<HistoricoDoacaoDTO>> historicoDoUsuario(
+            @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        String email = jwtUtil.extrairEmail(token);
+        return ResponseEntity.ok(agendamentoService.buscarHistoricoDoUsuario(email));
     }
-
 }

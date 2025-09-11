@@ -3,7 +3,7 @@ package com.sangue.api.controller;
 import com.sangue.api.repository.AgendamentoRepository;
 import com.sangue.api.repository.PostoRepository;
 import com.sangue.api.repository.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,28 +15,20 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class AdminController {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private AgendamentoRepository agendamentoRepository;
-
-    @Autowired
-    private PostoRepository postoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final AgendamentoRepository agendamentoRepository;
+    private final PostoRepository postoRepository;
 
     /**
-     * Endpoint que retorna dados agregados para o dashboard administrativo:
-     * - Total de usuários
-     * - Total de agendamentos
-     * - Total de postos
-     * - Última data de doação registrada
+     * Dados agregados para o dashboard:
+     * - totalUsuarios, totalAgendamentos, totalPostos, ultimaDoacao
      */
     @GetMapping("/dashboard")
-    public ResponseEntity<?> getDashboardData() {
+    public ResponseEntity<Map<String, Object>> getDashboardData() {
         Map<String, Object> dados = new HashMap<>();
-
         long totalUsuarios = usuarioRepository.count();
         long totalAgendamentos = agendamentoRepository.count();
         long totalPostos = postoRepository.count();
@@ -51,11 +43,11 @@ public class AdminController {
     }
 
     /**
-     * Endpoint que retorna um ranking dos postos com mais agendamentos.
-     * Retorna uma lista de objetos com nome do posto e total de aendamentos.
+     * Ranking dos postos com mais agendamentos.
+     * Retorna: [{ nome, totalAgendamentos }, ...]
      */
     @GetMapping("/ranking-postos")
-    public ResponseEntity<?> getRankingPostos() {
+    public ResponseEntity<List<Map<String, Object>>> getRankingPostos() {
         List<Object[]> resultados = agendamentoRepository.rankingPorPosto();
 
         List<Map<String, Object>> ranking = resultados.stream().map(obj -> {
@@ -69,16 +61,11 @@ public class AdminController {
     }
 
     /**
-     * Retorna o histórico de doações de um usuário específico (admin visualiza).
-     * Requer o ID do usuário como parâmetro.
+     * Histórico de doações por usuário (admin).
      */
     @GetMapping("/historico-doacoes/{usuarioId}")
-    public ResponseEntity<?> getHistoricoPorUsuario(@PathVariable Long usuarioId) {
-        try {
-            List<Map<String, Object>> historico = agendamentoRepository.buscarHistoricoPorUsuario(usuarioId);
-            return ResponseEntity.ok(historico);
-        } catch (Exception e) {
-            return ResponseEntity.status(400).body("Erro ao buscar histórico de doações.");
-        }
+    public ResponseEntity<List<Map<String, Object>>> getHistoricoPorUsuario(@PathVariable Long usuarioId) {
+        // Se ocorrer erro (ex.: ID inválido), teu GlobalExceptionHandler resolve.
+        return ResponseEntity.ok(agendamentoRepository.buscarHistoricoPorUsuario(usuarioId));
     }
 }

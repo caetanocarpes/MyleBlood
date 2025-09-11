@@ -7,6 +7,11 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
+/**
+ * DTO para criação de usuário.
+ * Inclui validações com Bean Validation para garantir consistência
+ * antes de chegar no service.
+ */
 @Getter
 @Setter
 public class UsuarioDTO {
@@ -27,7 +32,7 @@ public class UsuarioDTO {
     private String cpf;
 
     @NotBlank(message = "Data de nascimento é obrigatória (formato yyyy-MM-dd)")
-    private String dataNascimento; // validado no service
+    private String dataNascimento; // validado no service (idade 16–69)
 
     // ===== Novos campos =====
     @NotNull(message = "Tipo sanguíneo é obrigatório")
