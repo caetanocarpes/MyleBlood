@@ -32,57 +32,31 @@ public class SecurityConfig {
     @Autowired
     private JwtFilter jwtFilter;
 
-    /**
-     * Cadeia de filtros e regras de autorização.
-     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // API REST: sem CSRF
                 .csrf(csrf -> csrf.disable())
-
-                // CORS para permitir chamadas do front local
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // Stateless: sem sessão no servidor
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // Regras de autorização
                 .authorizeHttpRequests(auth -> auth
-                        // Libera autenticação/registro/refresh etc.
                         .requestMatchers("/auth/**").permitAll()
-
-                        // Libera arquivos estáticos (se servir pelo mesmo backend)
                         .requestMatchers(
                                 "/", "/index.html",
                                 "/favicon.ico",
                                 "/css/**", "/js/**", "/images/**",
                                 "/static/**"
                         ).permitAll()
-
-                        // (opcional) healthcheck
                         .requestMatchers("/actuator/health").permitAll()
-
-                        // Opcional: liberar OPTIONS (preflight CORS)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // Qualquer outra rota requer token JWT válido
                         .anyRequest().authenticated()
                 )
-
-                // Retorno 401 quando não autenticado em rota privada
                 .httpBasic(Customizer.withDefaults());
 
-        // Insere o filtro JWT antes do filtro padrão de autenticação
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
-    /**
-     * CORS para desenvolvimento.
-     * Ajuste origins conforme sua porta do front (ex.: 5173/Vite, 3000/Next/React).
-     */
+    /** CORS para dev (ajuste origins conforme seu front) */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
@@ -103,18 +77,13 @@ public class SecurityConfig {
         return source;
     }
 
-    /**
-     * Encoder de senhas (BCrypt).
-     * Use ao salvar/validar senha do usuário.
-     */
+    /** Encoder de senhas (BCrypt) */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * AuthenticationManager (pode ser útil em fluxos de autenticação personalizados).
-     */
+    /** AuthenticationManager (se precisar) */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();

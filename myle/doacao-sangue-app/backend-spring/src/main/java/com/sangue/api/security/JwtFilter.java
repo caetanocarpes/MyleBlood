@@ -51,7 +51,7 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 3) Se já existe autenticação no contexto, segue em frente
+        // 3) Se já existe autenticação no contexto, segue
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
             filterChain.doFilter(request, response);
             return;
@@ -67,16 +67,13 @@ public class JwtFilter extends OncePerRequestFilter {
                 if (jwtUtil.tokenValido(token)) {
                     String email = jwtUtil.extrairEmail(token);
 
-                    // Carrega o usuário para o contexto (poderia buscar também roles/perfis)
-                    Usuario usuario = usuarioRepository.findByEmail(email)
-                            .orElse(null);
-
+                    Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
                     if (usuario != null) {
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(
-                                        usuario, // principal
-                                        null,    // credentials (não expomos)
-                                        Collections.emptyList() // authorities (ajuste quando tiver roles)
+                                        usuario,
+                                        null,
+                                        Collections.emptyList() // authorities (adicionar quando tiver roles)
                                 );
 
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -84,8 +81,8 @@ public class JwtFilter extends OncePerRequestFilter {
                     }
                 }
             } catch (Exception e) {
-                // Token inválido/expirado/etc -> segue sem autenticar.
-                // Rotas privadas vão devolver 401 automaticamente.
+                // Token inválido/expirado -> segue sem autenticar
+                // Rotas privadas devolverão 401 via Security
                 System.out.println("Erro no filtro JWT: " + e.getMessage());
             }
         }

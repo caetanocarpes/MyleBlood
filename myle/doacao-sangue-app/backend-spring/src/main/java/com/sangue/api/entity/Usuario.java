@@ -1,5 +1,6 @@
 package com.sangue.api.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -33,6 +34,7 @@ public class Usuario {
     @Column(unique = true, length = 11, nullable = false) // somente números
     private String cpf;
 
+    @JsonIgnore // nunca expor senha no JSON
     @Column(nullable = false)
     private String senha;
 
@@ -55,7 +57,7 @@ public class Usuario {
     @Column(name = "altura_cm", nullable = false)
     private Integer alturaCm;
 
-    // Setter para normalizar email (sempre lowercase)
+    /** Setter para normalizar email (sempre lowercase) */
     public void setEmail(String email) {
         this.email = (email != null) ? email.trim().toLowerCase() : null;
     }

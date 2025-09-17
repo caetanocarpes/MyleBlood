@@ -8,8 +8,8 @@ import com.sangue.api.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -54,7 +54,7 @@ public class ConfigDataLoader implements CommandLineRunner {
             u.setCpf("11122233344");
             u.setSenha(passwordEncoder.encode("123456"));
             u.setDataNascimento(LocalDate.of(2000, 1, 1));
-            u.setTipoSanguineo(TipoSanguineo.O_POSITIVO);
+            u.setTipoSanguineo(TipoSanguineo.O_POS); // <-- corrigido
             u.setPesoKg(new BigDecimal("75.0"));
             u.setAlturaCm(180);
             usuarioRepository.save(u);

@@ -13,14 +13,13 @@ import lombok.Setter;
 @Setter
 public class Posto {
 
-    @Column(nullable = false)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nome;                // Nome do posto
-    private String endereco;            // Endereço completo
-    private String cidade;              // Cidade onde está o posto
-    private String estado;              // Estado (UF)
-    private String horarioFuncionamento; // Texto descritivo do horário
+    private String nome;
+    private String endereco;
+    private String cidade;
+    private String estado;
+    private String horarioFuncionamento;
 }
