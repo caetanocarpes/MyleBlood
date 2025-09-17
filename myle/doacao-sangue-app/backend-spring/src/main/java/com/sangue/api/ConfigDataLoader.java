@@ -15,8 +15,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * Popula dados de desenvolvimento.
- * Executa somente no profile 'dev' (defina spring.profiles.active=dev).
+ * Seed de desenvolvimento (executa somente com profile 'dev').
+ * Para habilitar: adicione em application.properties -> spring.profiles.active=dev
  */
 @Component
 @Profile("dev")
@@ -29,6 +29,12 @@ public class ConfigDataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        seedPostos();
+        seedUsuarioDemo();
+    }
+
+    private void seedPostos() {
+        // Evita duplicar por nome (ajuste se tiver unique no banco)
         if (postoRepository.count() == 0) {
             Posto p1 = new Posto();
             p1.setNome("Hemocentro Central");
@@ -44,20 +50,35 @@ public class ConfigDataLoader implements CommandLineRunner {
 
             postoRepository.save(p1);
             postoRepository.save(p2);
+            System.out.println("[seed] Postos criados.");
+        } else {
+            System.out.println("[seed] Postos já existentes. Pulando.");
         }
+    }
 
-        // Usuário de teste (opcional)
-        if (usuarioRepository.findByEmail("demo@myle.com").isEmpty()) {
+    private void seedUsuarioDemo() {
+        final String emailDemo = "demo@myle.com";
+        final String cpfDemoRaw = "111.222.333-44"; // pode ter máscara; será normalizado
+        final String cpfDemo = cpfDemoRaw.replaceAll("\\D", ""); // só dígitos
+
+        boolean existeEmail = usuarioRepository.existsByEmail(emailDemo);
+        boolean existeCpf = usuarioRepository.existsByCpf(cpfDemo);
+
+        if (!existeEmail && !existeCpf) {
             Usuario u = new Usuario();
             u.setNome("Usuário Demo");
-            u.setEmail("demo@myle.com");
-            u.setCpf("11122233344");
-            u.setSenha(passwordEncoder.encode("123456"));
+            u.setEmail(emailDemo); // setter já normaliza pra lowercase
+            u.setCpf(cpfDemo);
+            u.setSenha(passwordEncoder.encode("123456")); // BCrypt
             u.setDataNascimento(LocalDate.of(2000, 1, 1));
-            u.setTipoSanguineo(TipoSanguineo.O_POS); // <-- corrigido
-            u.setPesoKg(new BigDecimal("75.0"));
+            u.setTipoSanguineo(TipoSanguineo.O_POS);
+            u.setPesoKg(new BigDecimal("75.00"));
             u.setAlturaCm(180);
+
             usuarioRepository.save(u);
+            System.out.println("[seed] Usuário demo criado: " + emailDemo + " / senha: 123456");
+        } else {
+            System.out.println("[seed] Usuário demo já existe (email ou CPF). Pulando.");
         }
     }
 }

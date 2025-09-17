@@ -2,17 +2,16 @@ package com.sangue.api.security;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
 /**
- * Utilitário JWT (JJWT 0.11.5) — compatível com Java 17.
- * Responsável por gerar, validar e extrair dados do token.
+ * Utilitário JWT (JJWT 0.11.5).
  */
 @Component
 public class JwtUtil {
@@ -20,9 +19,9 @@ public class JwtUtil {
     private final Key key;
     private final long expiration;
 
-    public JwtUtil(@Value("${jwt.secret}") String secret,
+    public JwtUtil(@Value("${jwt.secret}") String secretB64,
                    @Value("${jwt.expiration}") long expiration) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretB64));
         this.expiration = expiration;
     }
 
@@ -39,7 +38,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    /** Extrai o email (subject) do token */
+    /** Extrai o email do token */
     public String extrairEmail(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)

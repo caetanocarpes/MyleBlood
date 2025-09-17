@@ -22,10 +22,6 @@ import java.util.Map;
  * - POST /auth/register  → cria usuário
  * - POST /auth/login     → gera JWT
  * - GET  /auth/me        → retorna dados do usuário autenticado
- *
- * Observações:
- * - O JwtFilter valida o token e coloca o Usuario no SecurityContext.
- * - PasswordEncoder (BCrypt) valida a senha no login.
  */
 @RestController
 @RequestMapping("/auth")
@@ -36,21 +32,17 @@ public class AuthController {
     private final UsuarioService usuarioService;
     private final UsuarioRepository usuarioRepository;
     private final JwtUtil jwtUtil;
-    private final PasswordEncoder passwordEncoder; // configurado no SecurityConfig
+    private final PasswordEncoder passwordEncoder;
 
     /** Payload de resposta do login. */
     public record LoginResponse(
             String token,
-            long   expiresAt,             // epoch millis (quando expira)
-            Map<String, Object> usuario   // dados essenciais pro front
+            String tokenType,
+            long   expiresAt,
+            Map<String, Object> usuario
     ) {}
 
-    /**
-     * Registro de usuário.
-     * - Delega validações ao service (duplicidade/idade/formato)
-     * - Retorna 201 Created + id
-     * - Erros são tratados pelo GlobalExceptionHandler (400/409)
-     */
+    /** Registro de usuário */
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> registrar(@Valid @RequestBody UsuarioDTO dto) {
         Usuario criado = usuarioService.cadastrar(dto);
@@ -62,41 +54,46 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
-    /**
-     * Login:
-     * - Valida email/senha
-     * - Gera token JWT
-     * - Retorna expiresAt e dados essenciais do usuário
-     * - 401 se credenciais inválidas
-     */
+    /** Login */
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginDTO loginDTO) {
-        Usuario usuario = usuarioRepository.findByEmail(loginDTO.getEmail()).orElse(null);
+        try {
+            final String email = loginDTO.getEmail();
+            final String senha = loginDTO.getSenha();
 
-        if (usuario == null || !passwordEncoder.matches(loginDTO.getSenha(), usuario.getSenha())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou senha inválidos");
+            if (email == null || senha == null) {
+                return ResponseEntity.badRequest().body("Email e senha são obrigatórios");
+            }
+
+            Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
+            if (usuario == null || !passwordEncoder.matches(senha, usuario.getSenha())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou senha inválidos");
+            }
+
+            // Gera JWT
+            String token = jwtUtil.gerarToken(usuario.getEmail());
+            long expiresAt = System.currentTimeMillis() + jwtUtil.getExpirationMillis();
+
+            // Payload essencial
+            Map<String, Object> usr = new HashMap<>();
+            usr.put("id", usuario.getId());
+            usr.put("nome", usuario.getNome());
+            usr.put("email", usuario.getEmail());
+            usr.put("cpf", usuario.getCpf());
+            usr.put("tipoSanguineo", usuario.getTipoSanguineo());
+            usr.put("pesoKg", usuario.getPesoKg());
+            usr.put("alturaCm", usuario.getAlturaCm());
+
+            return ResponseEntity.ok(new LoginResponse(token, "Bearer", expiresAt, usr));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro inesperado ao efetuar login");
         }
-
-        String token = jwtUtil.gerarToken(usuario.getEmail());
-        long expiresAt = System.currentTimeMillis() + jwtUtil.getExpirationMillis();
-
-        Map<String, Object> usr = new HashMap<>();
-        usr.put("id", usuario.getId());
-        usr.put("nome", usuario.getNome());
-        usr.put("email", usuario.getEmail());
-        usr.put("cpf", usuario.getCpf());
-        usr.put("tipoSanguineo", usuario.getTipoSanguineo());
-        usr.put("pesoKg", usuario.getPesoKg());
-        usr.put("alturaCm", usuario.getAlturaCm());
-
-        return ResponseEntity.ok(new LoginResponse(token, expiresAt, usr));
     }
 
-    /**
-     * Perfil do usuário autenticado.
-     * - Usa Authentication para obter o principal (Usuario)
-     * - 401 se não autenticado
-     */
+    /** Perfil do usuário autenticado */
     @GetMapping("/me")
     public ResponseEntity<?> perfil(Authentication auth) {
         if (auth == null || !(auth.getPrincipal() instanceof Usuario usuario)) {

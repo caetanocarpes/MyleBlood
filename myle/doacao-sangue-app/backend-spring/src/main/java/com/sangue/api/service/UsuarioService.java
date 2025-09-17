@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * Regras de negócio do usuário:
- * - Cadastro com validações (idade, duplicidades)
+ * - Cadastro com validações (idade, duplicidades, CPF normalizado)
  * - Atualização com checagens de conflito
  * - Busca e remoção
  *
@@ -33,13 +33,14 @@ public class UsuarioService {
     /** Cadastra um novo usuário após validações. */
     @Transactional
     public Usuario cadastrar(UsuarioDTO dto) {
-        // Normaliza email (evita duplicidade por maiúsculas/minúsculas)
+        // Normaliza email e CPF
         String email = normalizarEmail(dto.getEmail());
+        String cpf = normalizarCpf(dto.getCpf());
 
         if (usuarioRepository.existsByEmail(email)) {
             throw new IllegalStateException("Email já cadastrado");
         }
-        if (usuarioRepository.existsByCpf(dto.getCpf())) {
+        if (usuarioRepository.existsByCpf(cpf)) {
             throw new IllegalStateException("CPF já cadastrado");
         }
 
@@ -49,12 +50,12 @@ public class UsuarioService {
         Usuario usuario = new Usuario();
         usuario.setNome(dto.getNome());
         usuario.setEmail(email);
-        usuario.setCpf(dto.getCpf());
+        usuario.setCpf(cpf);
         usuario.setDataNascimento(nascimento);
-        usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
+        usuario.setSenha(passwordEncoder.encode(dto.getSenha())); // BCrypt
 
         // Campos adicionais
-        usuario.setTipoSanguineo(dto.getTipoSanguineo()); // enum
+        usuario.setTipoSanguineo(dto.getTipoSanguineo());
         usuario.setPesoKg(dto.getPesoKg());
         usuario.setAlturaCm(dto.getAlturaCm());
 
@@ -102,9 +103,9 @@ public class UsuarioService {
             existente.setEmail(novoEmail);
         }
 
-        // CPF (checa duplicidade)
+        // CPF (normaliza + checa duplicidade)
         if (isNonBlank(novosDados.getCpf())) {
-            String novoCpf = novosDados.getCpf().trim();
+            String novoCpf = normalizarCpf(novosDados.getCpf());
             if (!novoCpf.equals(existente.getCpf())
                     && usuarioRepository.existsByCpf(novoCpf)) {
                 throw new IllegalStateException("CPF já cadastrado");
@@ -119,7 +120,7 @@ public class UsuarioService {
         }
 
         // Campos opcionais (enum e numéricos)
-        if (novosDados.getTipoSanguineo() != null) { // <-- troca do isNonBlank por != null
+        if (novosDados.getTipoSanguineo() != null) {
             existente.setTipoSanguineo(novosDados.getTipoSanguineo());
         }
         if (novosDados.getPesoKg() != null) {
@@ -151,8 +152,11 @@ public class UsuarioService {
     // ==========================================================
 
     private String normalizarEmail(String raw) {
-        if (raw == null) return null;
-        return raw.trim().toLowerCase();
+        return raw == null ? null : raw.trim().toLowerCase();
+    }
+
+    private String normalizarCpf(String raw) {
+        return raw == null ? null : raw.replaceAll("\\D", "");
     }
 
     private boolean isNonBlank(String s) {
